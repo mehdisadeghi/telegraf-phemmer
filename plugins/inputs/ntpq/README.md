@@ -30,10 +30,27 @@ server (RMS of difference of multiple time samples, milliseconds);
 # Get standard NTP query metrics, requires ntpq executable.
 [[inputs.ntpq]]
   ## If false, set the -n ntpq flag. Can reduce metric gather time.
-  dns_lookup = true
+  ## DEPRECATED since 1.24.0: add '-n' to 'options' instead to skip DNS lookup
+  # dns_lookup = true
+
+  ## Options to pass to the ntpq command.
+  # options = "-p"
+
+  ## Servers to query with ntpq.
+  ## If no server is given, the local machine is queried.
+  # servers = []
 ```
 
-## Measurements & Fields
+You can pass arbitrary options accepted by the `ntpq` command using the
+`options` setting. In case you want to skip DNS lookups use
+
+```toml
+  options = "-p -n"
+```
+
+for example.
+
+## Metrics
 
 - ntpq
   - delay (float, milliseconds)
@@ -43,13 +60,17 @@ server (RMS of difference of multiple time samples, milliseconds);
   - reach (int)
   - when (int, seconds)
 
-## Tags
+### Tags
 
-- All measurements have the following tags:
-  - refid
-  - remote
-  - type
-  - stratum
+All measurements have the following tags:
+
+- refid
+- remote
+- type
+- stratum
+
+In case you are specifying `servers`, the measurement has an
+additional `source` tag.
 
 ## Example Output
 

@@ -144,8 +144,7 @@ parameter which will cause the plugin to use the `uint8` datatype instead of
 The postgresql plugin uses templates for the schema modification SQL
 statements. This allows for complete control of the schema by the user.
 
-Documentation on how to write templates can be found here:
-[https://pkg.go.dev/github.com/influxdb/telegraf/plugins/outputs/postgresql/sqltemplate](https://pkg.go.dev/github.com/influxdb/telegraf/plugins/outputs/postgresql/sqltemplate)
+Documentation on how to write templates can be found [here][1].
 
 ### Samples
 
@@ -161,6 +160,7 @@ create_templates = [
 ```
 
 ##### Multi-node
+
 ```toml
 tags_as_foreign_keys = true
 create_templates = [
@@ -245,3 +245,5 @@ with an incremental backoff.
 When an error is determined to be permanent, the plugin will discard the
 sub-batch. The "sub-batch" is the portion of the input batch that is being
 written to the same table.
+
+[1]: https://pkg.go.dev/github.com/influxdb/telegraf/plugins/outputs/postgresql/sqltemplate

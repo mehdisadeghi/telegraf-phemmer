@@ -46,7 +46,8 @@ API endpoint. In the following order the plugin will attempt to authenticate.
   ##   ex: endpoint_url = "http://localhost:8000"
   # endpoint_url = ""
 
-  ## Set http_proxy (telegraf uses the system wide proxy settings if it's is not set)
+  ## Set http_proxy
+  # use_system_proxy = false
   # http_proxy_url = "http://localhost:8888"
 
   # The minimum period for Cloudwatch metrics is 1 minute (60s). However not all
@@ -90,6 +91,12 @@ API endpoint. In the following order the plugin will attempt to authenticate.
   ## Timeout for http requests made by the cloudwatch client.
   # timeout = "5s"
 
+  ## Batch Size
+  ## The size of each batch to send requests to Cloudwatch. 500 is the
+  ## suggested largest size. If a request gets to large (413 errors), consider
+  ## reducing this amount.
+  # batch_size = 500
+
   ## Namespace-wide statistic filters. These allow fewer queries to be made to
   ## cloudwatch.
   # statistic_include = [ "average", "sum", "minimum", "maximum", sample_count" ]
@@ -116,7 +123,8 @@ API endpoint. In the following order the plugin will attempt to authenticate.
 
 ## Requirements and Terminology
 
-Plugin Configuration utilizes [CloudWatch concepts](http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html) and access pattern to allow monitoring of any CloudWatch Metric.
+Plugin Configuration utilizes [CloudWatch concepts][1] and access pattern to
+allow monitoring of any CloudWatch Metric.
 
 - `region` must be a valid AWS [Region](http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html#CloudWatchRegions) value
 - `period` must be a valid CloudWatch [Period](http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html#CloudWatchPeriods) value
@@ -124,9 +132,10 @@ Plugin Configuration utilizes [CloudWatch concepts](http://docs.aws.amazon.com/A
 - `names` must be valid CloudWatch [Metric](http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html#Metric) names
 - `dimensions` must be valid CloudWatch [Dimension](http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html#Dimension) name/value pairs
 
-Omitting or specifying a value of `'*'` for a dimension value configures all available metrics that contain a dimension with the specified name
-to be retrieved. If specifying >1 dimension, then the metric must contain *all* the configured dimensions where the the value of the
-wildcard dimension is ignored.
+Omitting or specifying a value of `'*'` for a dimension value configures all
+available metrics that contain a dimension with the specified name to be
+retrieved. If specifying >1 dimension, then the metric must contain *all* the
+configured dimensions where the the value of the wildcard dimension is ignored.
 
 Example:
 
@@ -160,20 +169,27 @@ Then 2 metrics will be output:
 - name: `p-example`, availabilityZone: `us-east-1a`
 - name: `p-example`, availabilityZone: `us-east-1b`
 
-If the `AvailabilityZone` wildcard dimension was omitted, then a single metric (name: `p-example`)
-would be exported containing the aggregate values of the ELB across availability zones.
+If the `AvailabilityZone` wildcard dimension was omitted, then a single metric
+(name: `p-example`) would be exported containing the aggregate values of the ELB
+across availability zones.
 
-To maximize efficiency and savings, consider making fewer requests by increasing `interval` but keeping `period` at the duration you would like metrics to be reported. The above example will request metrics from Cloudwatch every 5 minutes but will output five metrics timestamped one minute apart.
+To maximize efficiency and savings, consider making fewer requests by increasing
+`interval` but keeping `period` at the duration you would like metrics to be
+reported. The above example will request metrics from Cloudwatch every 5 minutes
+but will output five metrics timestamped one minute apart.
+
+[1]: http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html
 
 ## Restrictions and Limitations
 
 - CloudWatch metrics are not available instantly via the CloudWatch API. You should adjust your collection `delay` to account for this lag in metrics availability based on your [monitoring subscription level](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch-new.html)
 - CloudWatch API usage incurs cost - see [GetMetricData Pricing](https://aws.amazon.com/cloudwatch/pricing/)
 
-## Measurements & Fields
+## Metrics
 
-Each CloudWatch Namespace monitored records a measurement with fields for each available Metric Statistic.
-Namespace and Metrics are represented in [snake case](https://en.wikipedia.org/wiki/Snake_case)
+Each CloudWatch Namespace monitored records a measurement with fields for each
+available Metric Statistic.  Namespace and Metrics are represented in [snake
+case](https://en.wikipedia.org/wiki/Snake_case)
 
 - cloudwatch_{namespace}
   - {metric}_sum         (metric Sum value)
@@ -182,10 +198,11 @@ Namespace and Metrics are represented in [snake case](https://en.wikipedia.org/w
   - {metric}_maximum     (metric Maximum value)
   - {metric}_sample_count (metric SampleCount value)
 
-## Tags
+### Tags
 
-Each measurement is tagged with the following identifiers to uniquely identify the associated metric
-Tag Dimension names are represented in [snake case](https://en.wikipedia.org/wiki/Snake_case)
+Each measurement is tagged with the following identifiers to uniquely identify
+the associated metric Tag Dimension names are represented in [snake
+case](https://en.wikipedia.org/wiki/Snake_case)
 
 - All measurements have the following tags:
   - region           (CloudWatch Region)
@@ -229,7 +246,7 @@ aws cloudwatch get-metric-data \
 ]'
 ```
 
-## Example
+## Example Output
 
 ```shell
 $ ./telegraf --config telegraf.conf --input-filter cloudwatch --test
